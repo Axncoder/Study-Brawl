@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyBrawl: The Ultimate Quiz Challenge 🏆</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <canvas id="particle-canvas"></canvas>
+    <div id="game-container">
+        <!-- Player Profile Header (Always visible after start) -->
+        <div id="profile-header" class="hidden">
+            <div class="player-profile">
+                <img id="player-avatar-img" src="https://placehold.co/100x100/1a1a2e/ffdd57?text=P1" alt="Avatar" class="avatar">
+                <div class="profile-info">
+                    <span id="player-level">Level 1</span>
+                    <div class="xp-bar-container"><div id="xp-bar"></div></div>
+                </div>
+            </div>
+            <div class="currency-display">
+                <span id="brawlcoins-balance">💰 0</span>
+            </div>
+        </div>
+
+        <!-- Start Screen -->
+        <div id="start-screen" class="screen">
+            <h1 class="game-title">StudyBrawl</h1>
+            <p class="subtitle">The Ultimate Quiz Challenge</p>
+            <div class="game-settings">
+                <select id="category" class="styled-select"></select>
+                <select id="difficulty" class="styled-select">
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                </select>
+            </div>
+            <button id="start-btn" class="primary-btn">Brawl!</button>
+            <div class="main-menu-buttons">
+                <button id="shop-btn" class="secondary-btn">Shop</button>
+                <button id="leaderboard-btn" class="secondary-btn">Leaderboard</button>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen hidden">
+            <div id="players">
+                <div class="player-hud">
+                    <img id="game-player-avatar" src="https://placehold.co/100x100/1a1a2e/ffdd57?text=P1" class="avatar small">
+                    <h2>You</h2>
+                    <div class="health-bar-container"><div id="player1-health" class="health-bar"></div></div>
+                </div>
+                <div class="player-hud">
+                    <!-- Changed bot-avatar.png to a placeholder -->
+                    <img src="https://placehold.co/100x100/1a1a2e/e94560?text=Bot" class="avatar small">
+                    <h2>Bot</h2>
+                    <div class="health-bar-container"><div id="player2-health" class="health-bar"></div></div>
+                </div>
+            </div>
+            <p id="score-display">Score: 0</p>
+            <div id="question-container">
+                <p id="question"></p>
+                <div id="answer-options"></div>
+            </div>
+            <div id="power-ups">
+                <button id="power-up-5050" class="power-up-btn">50/50 (<span id="pu-5050-count">0</span>)</button>
+                <button id="power-up-heal" class="power-up-btn">Heal (<span id="pu-heal-count">0</span>)</button>
+            </div>
+        </div>
+
+        <!-- End Screen -->
+        <div id="end-screen" class="screen hidden">
+            <h2 id="end-message"></h2>
+            <p id="final-score"></p>
+            <!-- ADDED THIS LINE for correct answer stats -->
+            <p id="correct-answers-stat"></p>
+            <p id="xp-gain"></p>
+            <button id="play-again-btn" class="primary-btn">Play Again</button>
+            <button id="main-menu-btn" class="secondary-btn">Main Menu</button>
+        </div>
+        
+        <!-- Shop Screen -->
+        <div id="shop-screen" class="screen hidden">
+            <h2>Avatar Shop</h2>
+            <div id="avatar-shop-items"></div>
+            <button id="back-to-menu-shop-btn" class="secondary-btn">Back to Menu</button>
+        </div>
+
+        <!-- Leaderboard Screen -->
+        <div id="leaderboard-screen" class="screen hidden">
+            <h2>🏆 Global Leaderboard 🏆</h2>
+            <ol id="high-scores-list"></ol>
+            <button id="back-to-menu-leaderboard-btn" class="secondary-btn">Back to Menu</button>
+        </div>
+    </div>
+
+    <!-- Sounds -->
+    <audio id="correct-sound" src="https://actions.google.com/sounds/v1/positive/positive_charge_up.ogg"></audio>
+    <audio id="incorrect-sound" src="https://actions.google.com/sounds/v1/negative/negative_beeps.ogg"></audio>
+    <audio id="win-sound" src="https://actions.google.com/sounds/v1/cartoon/magic_chime.ogg"></audio>
+    <audio id="lose-sound" src="https://actions.google.com/sounds/v1/cartoon/sad_whistle.ogg"></audio>
+    <audio id="power-up-sound" src="https://actions.google.com/sounds/v1/switches/switch_on.ogg"></audio>
+    <audio id="purchase-sound"src="https://actions.google.com/sounds/v1/coins/coin_drop.ogg"></audio>
+
+    <script src="script.js"></script>
+</body>
+</html>

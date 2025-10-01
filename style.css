@@ -1,0 +1,260 @@
+/* --- Base Styles & Aurora Background --- */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+:root {
+    --primary-color: #ffdd57;
+    --dark-bg: #1a1a2e;
+    --light-bg: #1f1f3a;
+    --text-color: #ffffff;
+    --accent-color: #e94560;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Poppins', sans-serif;
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #0f0f24;
+    overflow: hidden;
+}
+
+#particle-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+}
+
+/* --- Game Container & Screen Management --- */
+#game-container {
+    width: 95%;
+    max-width: 850px;
+    background: rgba(26, 26, 46, 0.7);
+    backdrop-filter: blur(25px);
+    border-radius: 30px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    padding: 35px;
+    padding-top: 80px; /* Make space for the profile header */
+    text-align: center;
+    border: 1.5px solid rgba(255, 255, 255, 0.15);
+    position: relative;
+    z-index: 1;
+}
+
+.screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: fadeIn 0.6s ease;
+}
+
+.hidden { display: none; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Typography & Titles --- */
+.game-title {
+    font-size: 4rem;
+    color: var(--primary-color);
+    text-shadow: 0 0 20px var(--primary-color), 0 0 35px var(--primary-color);
+    margin-bottom: 5px;
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    color: #ddd;
+    margin-bottom: 25px;
+}
+
+/* --- Buttons & Inputs --- */
+.primary-btn, .secondary-btn, .power-up-btn {
+    padding: 15px 35px;
+    border: none;
+    border-radius: 15px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin: 10px;
+}
+
+.primary-btn {
+    background: var(--primary-color);
+    color: var(--dark-bg);
+    box-shadow: 0 5px 20px rgba(255, 221, 87, 0.4);
+}
+.primary-btn:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(255, 221, 87, 0.6);
+}
+
+.secondary-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-color);
+    border: 2px solid transparent;
+}
+.secondary-btn:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+.main-menu-buttons {
+    display: flex;
+}
+
+.styled-select {
+    padding: 12px 20px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.4);
+    color: var(--text-color);
+    font-size: 1rem;
+    margin: 0 10px;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffdd57' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    background-size: 1.2em;
+}
+
+/* --- Player Profile Header --- */
+#profile-header {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.player-profile { display: flex; align-items: center; }
+.avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px solid var(--primary-color);
+    margin-right: 10px;
+    background-color: var(--dark-bg); /* Add bg color for placeholders */
+}
+.avatar.small { width: 40px; height: 40px; }
+
+.xp-bar-container {
+    width: 100px;
+    height: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 5px;
+    overflow: hidden;
+}
+#xp-bar {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #3a1c71, #ffaf7b);
+    border-radius: 5px;
+    transition: width 0.5s;
+}
+#player-level { font-size: 0.9rem; font-weight: 600; }
+#brawlcoins-balance {
+    font-size: 1.2rem;
+    font-weight: 700;
+    background: rgba(0,0,0,0.3);
+    padding: 5px 10px;
+    border-radius: 10px;
+}
+
+/* --- Game Screen --- */
+#players { margin-bottom: 20px; width: 100%; display: flex; justify-content: space-around; }
+
+/* === ADDED/MODIFIED STYLES FOR HEALTH BARS === */
+.player-hud {
+    width: 40%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+.health-bar-container {
+    width: 100%;
+    height: 15px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+}
+.health-bar {
+    height: 100%;
+    border-radius: 8px;
+    width: 100%;
+    background: linear-gradient(90deg, #4caf50, #81c784);
+    transition: width 0.5s, background-color 0.5s;
+}
+#player2-health {
+    background: linear-gradient(90deg, var(--accent-color), #ff7675);
+}
+/* === END OF NEW STYLES === */
+
+#question { font-size: 1.5rem; min-height: 80px; }
+#answer-options { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+.answer-btn {
+    border: 2px solid rgba(255, 255, 255, 0.3); background: transparent; color: white;
+    padding: 15px; border-radius: 12px; font-size: 1rem; cursor: pointer; transition: all 0.2s;
+}
+.answer-btn:hover:not(:disabled) { background-color: var(--primary-color); color: var(--dark-bg); border-color: var(--primary-color); }
+.answer-btn.correct { background-color: #28a745; border-color: #28a745; }
+.answer-btn.incorrect { background-color: var(--accent-color); border-color: var(--accent-color); }
+
+#power-ups { margin-top: 25px; display: flex; justify-content: center; }
+.power-up-btn { background: #1f1f3a; color: var(--primary-color); border: 1px solid var(--primary-color); }
+.power-up-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* --- End Screen Specifics --- */
+#correct-answers-stat {
+    font-size: 1.1rem;
+    color: #ccc;
+    margin: 5px 0;
+}
+#xp-gain { color: #28a745; font-size: 1.2rem; font-weight: bold; margin: 10px 0; }
+
+/* --- Shop & Leaderboard --- */
+#avatar-shop-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 20px;
+    width: 100%;
+    margin-bottom: 20px;
+}
+.shop-item {
+    background: rgba(0,0,0,0.3);
+    padding: 15px;
+    border-radius: 15px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.shop-item:hover { transform: scale(1.05); border-color: var(--primary-color); }
+.shop-item img { width: 80px; height: 80px; border-radius: 50%; background-color: var(--dark-bg); }
+.shop-item p { margin-top: 5px; }
+.shop-item.owned { border-color: #28a745; opacity: 0.7; }
+
+#high-scores-list { list-style: none; padding: 0; width: 90%; }
+#high-scores-list li {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+#high-scores-list li:first-child {
+    background: linear-gradient(90deg, rgba(255,221,87,0.3), rgba(255,221,87,0.1));
+}
