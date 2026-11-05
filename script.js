@@ -203,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 UI.displays.question.textContent = "Loading questions...";
                 const response = await fetch(url);
                 const data = await response.json();
-                if (data.results.length === 0) throw new Error("No questions returned from API.");
+                if (!data.results || data.results.length === 0) throw new Error("No questions returned from API.");
                 GameState.game.questions = data.results.map(q => ({
                     question: q.question,
                     answers: [...q.incorrect_answers, q.correct_answer].sort(() => Math.random() - 0.5),
