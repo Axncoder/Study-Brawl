@@ -47,7 +47,6 @@ document.addEventListener('DOMContentLoaded', () => {
             score: document.getElementById('score-display'),
             endMessage: document.getElementById('end-message'),
             finalScore: document.getElementById('final-score'),
-            // ADDED THIS for correct answer stats
             correctAnswersStat: document.getElementById('correct-answers-stat'),
             xpGain: document.getElementById('xp-gain'),
             shopItems: document.getElementById('avatar-shop-items'),
@@ -83,10 +82,8 @@ document.addEventListener('DOMContentLoaded', () => {
         game: {
             playerHealth: 100, botHealth: 100, score: 0,
             questions: [], currentQuestionIndex: 0,
-            // ADDED THIS to track correct answers
             correctAnswersCount: 0,
         },
-        // UPDATED with placeholder images. Replace these URLs with your own files!
         avatars: [
             { id: 1, name: 'Explorer', price: 0, src: 'https://placehold.co/100x100/1a1a2e/ffdd57?text=P1' },
             { id: 2, name: 'Ninja', price: 150, src: 'https://placehold.co/100x100/4a4a5e/ffffff?text=Ninja' },
@@ -99,6 +96,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const txt = document.createElement("textarea");
         txt.innerHTML = html;
         return txt.value;
+    }
+
+    // Fisher-Yates shuffle (returns a new shuffled array)
+    function shuffle(arr) {
+        const a = [...arr];
+        for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
     }
 
     function showScreen(screenKey) {
@@ -124,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const { level, xp, brawlCoins, currentAvatar, powerUps } = GameState.playerData;
         UI.displays.playerLevel.textContent = `Level ${level}`;
         UI.displays.brawlCoins.textContent = `💰 ${brawlCoins}`;
-        
+
         const xpForNextLevel = level * 100;
         const xpPercentage = (xp / xpForNextLevel) * 100;
         UI.displays.xpBar.style.width = `${xpPercentage}%`;
@@ -132,54 +139,87 @@ document.addEventListener('DOMContentLoaded', () => {
         const avatarSrc = GameState.avatars.find(a => a.id === currentAvatar)?.src || 'https://placehold.co/100x100/1a1a2e/ffdd57?text=P1';
         UI.displays.playerAvatar.src = avatarSrc;
         UI.displays.gamePlayerAvatar.src = avatarSrc;
-        
+
         UI.displays.pu5050Count.textContent = powerUps['5050'];
         UI.displays.puHealCount.textContent = powerUps.heal;
     }
 
+    // Builds the category dropdown: your own GCSE & A-level subjects first,
+    // then general knowledge categories from Open Trivia DB.
     async function fetchCategories() {
+        UI.selects.category.innerHTML = '';
+
+        const customGroup = document.createElement('optgroup');
+        customGroup.label = 'GCSE & A-level';
+        Object.keys(CUSTOM_QUESTIONS).forEach(subject => {
+            const option = document.createElement('option');
+            option.value = `custom:${subject}`;
+            option.textContent = subject;
+            customGroup.appendChild(option);
+        });
+        UI.selects.category.appendChild(customGroup);
+
+        const generalGroup = document.createElement('optgroup');
+        generalGroup.label = 'General knowledge';
+        const anyOption = document.createElement('option');
+        anyOption.value = 'any';
+        anyOption.textContent = 'Any Category';
+        generalGroup.appendChild(anyOption);
         try {
             const response = await fetch('https://opentdb.com/api_category.php');
             const data = await response.json();
-            UI.selects.category.innerHTML = '<option value="any">Any Category</option>';
             data.trivia_categories.forEach(category => {
                 const option = document.createElement('option');
                 option.value = category.id;
                 option.textContent = category.name;
-                UI.selects.category.appendChild(option);
+                generalGroup.appendChild(option);
             });
         } catch (error) { console.error("Failed to fetch categories:", error); }
+        UI.selects.category.appendChild(generalGroup);
     }
 
     async function startGame() {
         // Reset game state
         GameState.game = { playerHealth: 100, botHealth: 100, score: 0, questions: [], currentQuestionIndex: 0, correctAnswersCount: 0 };
-        
+
         const category = UI.selects.category.value;
         const difficulty = UI.selects.difficulty.value;
-        let url = `https://opentdb.com/api.php?amount=10&difficulty=${difficulty}&type=multiple`;
-        if (category !== "any") url += `&category=${category}`;
-        
-        try {
-            UI.displays.question.textContent = "Loading questions...";
-            const response = await fetch(url);
-            const data = await response.json();
-            if (data.results.length === 0) throw new Error("No questions returned from API.");
-            GameState.game.questions = data.results.map(q => ({
+
+        if (category.startsWith('custom:')) {
+            // Your own questions (questions.js)
+            const subject = category.replace('custom:', '');
+            const pool = CUSTOM_QUESTIONS[subject][difficulty];
+            GameState.game.questions = shuffle(pool).slice(0, 10).map(q => ({
                 question: q.question,
-                answers: [...q.incorrect_answers, q.correct_answer].sort(() => Math.random() - 0.5),
-                correct: q.correct_answer
+                answers: shuffle(q.answers),
+                correct: q.correct
             }));
-        } catch (error) {
-            console.error("Failed to fetch questions", error);
-            GameState.game.questions = [{ question: "Failed to load questions. Play again?", answers: ["Yes"], correct: "Yes" }];
+        } else {
+            // General knowledge questions from Open Trivia DB
+            let url = `https://opentdb.com/api.php?amount=10&difficulty=${difficulty}&type=multiple`;
+            if (category !== "any") url += `&category=${category}`;
+
+            try {
+                UI.displays.question.textContent = "Loading questions...";
+                const response = await fetch(url);
+                const data = await response.json();
+                if (data.results.length === 0) throw new Error("No questions returned from API.");
+                GameState.game.questions = data.results.map(q => ({
+                    question: q.question,
+                    answers: [...q.incorrect_answers, q.correct_answer].sort(() => Math.random() - 0.5),
+                    correct: q.correct_answer
+                }));
+            } catch (error) {
+                console.error("Failed to fetch questions", error);
+                GameState.game.questions = [{ question: "Failed to load questions. Play again?", answers: ["Yes"], correct: "Yes" }];
+            }
         }
 
         updateProfileUI();
         showScreen('game');
         askQuestion();
     }
-    
+
     function askQuestion() {
         if (GameState.game.currentQuestionIndex >= GameState.game.questions.length || GameState.game.playerHealth <= 0 || GameState.game.botHealth <= 0) {
             endGame();
@@ -215,7 +255,6 @@ document.addEventListener('DOMContentLoaded', () => {
             GameState.game.score += 10;
             GameState.playerData.brawlCoins += 5;
             GameState.game.botHealth -= 20;
-            // ADDED THIS to increment correct answer count
             GameState.game.correctAnswersCount++;
         } else {
             UI.sounds.incorrect.play();
@@ -227,28 +266,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         }
-        
+
         updateProfileUI();
         UI.displays.playerHealth.style.width = `${Math.max(0, GameState.game.playerHealth)}%`;
         UI.displays.botHealth.style.width = `${Math.max(0, GameState.game.botHealth)}%`;
         UI.displays.score.textContent = `Score: ${GameState.game.score}`;
-        
+
         setTimeout(() => {
             GameState.game.currentQuestionIndex++;
             askQuestion();
         }, 1500);
     }
 
+    // Saves the score to this browser's high score list (top 10 kept)
+    function saveHighScore(score) {
+        if (score <= 0) return;
+        let highScores = [];
+        try {
+            highScores = JSON.parse(localStorage.getItem('studyBrawlHighScores')) || [];
+        } catch (e) { highScores = []; }
+        highScores.push({ name: 'You', score: score });
+        highScores = highScores.sort((a, b) => b.score - a.score).slice(0, 10);
+        localStorage.setItem('studyBrawlHighScores', JSON.stringify(highScores));
+    }
+
     function endGame() {
         showScreen('end');
         const xpGained = GameState.game.score;
         const playerWon = GameState.game.playerHealth > 0;
-        
+
         UI.sounds[playerWon ? 'win' : 'lose'].play();
         UI.displays.endMessage.textContent = playerWon ? "You Win! 🎉" : "Bot Wins! 😢";
         UI.displays.finalScore.textContent = `Final Score: ${GameState.game.score}`;
 
-        // ADDED/MODIFIED THIS LOGIC to show the final stats
         const questionsAnswered = GameState.game.currentQuestionIndex;
         if (questionsAnswered > 0) {
             const percentage = Math.round((GameState.game.correctAnswersCount / questionsAnswered) * 100);
@@ -261,8 +311,9 @@ document.addEventListener('DOMContentLoaded', () => {
             UI.displays.xpGain.textContent = `+${xpGained} XP!`;
             addXP(xpGained);
         } else {
-             UI.displays.xpGain.textContent = ``;
+            UI.displays.xpGain.textContent = ``;
         }
+        saveHighScore(GameState.game.score);
         savePlayerData();
     }
 
@@ -275,7 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
             GameState.playerData.brawlCoins += 50;
             GameState.playerData.powerUps['5050']++;
             GameState.playerData.powerUps.heal++;
-             xpForNextLevel = GameState.playerData.level * 100;
+            xpForNextLevel = GameState.playerData.level * 100;
         }
         updateProfileUI();
     }
@@ -287,15 +338,15 @@ document.addEventListener('DOMContentLoaded', () => {
             item.classList.add('shop-item');
             const isOwned = GameState.playerData.ownedAvatars.includes(avatar.id);
             if (isOwned) item.classList.add('owned');
-            
+
             item.innerHTML = `<img src="${avatar.src}" alt="${avatar.name}"><p>${avatar.name}</p><p>${isOwned ? 'Owned' : `💰 ${avatar.price}`}</p>`;
-            
+
             item.addEventListener('click', () => isOwned ? equipAvatar(avatar.id) : buyAvatar(avatar));
             UI.displays.shopItems.appendChild(item);
         });
         showScreen('shop');
     }
-    
+
     function buyAvatar(avatar) {
         if (GameState.playerData.brawlCoins >= avatar.price) {
             GameState.playerData.brawlCoins -= avatar.price;
@@ -308,7 +359,7 @@ document.addEventListener('DOMContentLoaded', () => {
             alert("Not enough BrawlCoins!");
         }
     }
-    
+
     function equipAvatar(avatarId) {
         GameState.playerData.currentAvatar = avatarId;
         savePlayerData();
@@ -336,7 +387,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const currentQ = GameState.game.questions[GameState.game.currentQuestionIndex];
             const correctAnswer = decodeHtml(currentQ.correct);
             const incorrectAnswers = currentQ.answers.filter(a => decodeHtml(a) !== correctAnswer);
-            
+
             const toRemove1 = incorrectAnswers.splice(Math.floor(Math.random() * incorrectAnswers.length), 1)[0];
             const toRemove2 = incorrectAnswers.splice(Math.floor(Math.random() * incorrectAnswers.length), 1)[0];
 
@@ -366,7 +417,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loadPlayerData();
         updateProfileUI();
         fetchCategories();
-        
+
         UI.buttons.start.addEventListener('click', startGame);
         UI.buttons.shop.addEventListener('click', showShop);
         UI.buttons.leaderboard.addEventListener('click', showLeaderboard);
@@ -380,6 +431,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         showScreen('start');
     }
-    
+
     init();
 });
